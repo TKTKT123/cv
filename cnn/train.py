@@ -1,4 +1,5 @@
 from torch.utils import data
+from data import train_data,test_data
 batch_size=32
 train_loader = data.DataLoader(train_data,batch_size=batch_size,shuffle=True,pin_memory=True)
 test_loader = data.DataLoader(test_data,batch_size=batch_size)
@@ -6,6 +7,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
+import time
 
 class CNN(nn.Module):
     def __init__(self):
@@ -34,7 +36,7 @@ class CNN(nn.Module):
         return F.log_softmax(x,dim=1)
 
 
-lr=1e-4
+lr=0.001
 device=torch.device("cuda" if torch.cuda.is_available() else "cpu" )
 model=CNN().to(device)
 optimizer=optim.Adam(model.parameters(),lr=lr)
@@ -56,7 +58,7 @@ def train(model,device,train_loader,optimizer,epoch,losses):
 
 def test(model,device,test_loader):
     model.eval()
-    correct=0  #预测对了几个
+    correct=0  #预测对了几个。
     with torch.no_grad():
         for idx,(t_data,t_target) in enumerate(test_loader):
             t_data,t_target=t_data.to(device),t_target.to(device)
@@ -67,11 +69,16 @@ def test(model,device,test_loader):
     print("accuracy:{}".format(acc))
 
 
-num_epochs=10
+num_epochs=3
 losses=[]
-from time import *
-begin_time=time()
+
+since = time.time()
+
 for epoch in range(num_epochs):
     train(model,device,train_loader,optimizer,epoch,losses)
+
 test(model,device,test_loader)
-end_time=time()
+
+time_elapsed = time.time() - since
+print('Training complete in {:.0f}m {:.0f}s'.format(
+    time_elapsed // 60, time_elapsed % 60))
